@@ -21,6 +21,14 @@ Bird.prototype.kill = function () {
 	this.score = Game.score;
 	Game.alive--;
 }
+Bird.prototype.think = function (g) {
+	if (this.NN.compute(this.height - g) > 0.9) this.speed = -6;
+}
+Bird.prototype.update = function (g) {
+	if (this.dead) return;
+	this.speed += g || 0.3;
+	this.height += this.speed;
+}
 Bird.objects = [];
 
 var Game = {
@@ -36,10 +44,13 @@ var Game = {
 	startOffset: 500,
 	playerSize: 30,
 	alive: 0,
+	MAXSPEED: false,
+	parents: 10,
+	population: 100,
 }
 
 for (var i = 1000; i--;) Game.gaps[i] = Game.gapMargin + Math.random() * (canvas.height - 2 * Game.gapMargin - Game.gapWidth);
-for (var i = 160; i--;) new Bird();
+for (var i = Game.population + Game.parents; i--;) new Bird();
 
 c.fillStyle = "rgba(0,0,0,0.5)";
 c.strokeStyle = "white";
@@ -67,45 +78,41 @@ function render() {
 render();
 
 function elapse() {
-	for (var i = Bird.objects.length; i--;) {
-		var b = Bird.objects[i];
-		if (b.dead) continue;
-		b.speed += .3;
-		b.height += b.speed;
-	}
-	Game.score += 1;
-
+	for (var i = Bird.objects.length; i--;) Bird.objects[i].update();
 	var diff = Game.speed * Game.score - Game.startOffset + canvas.width / 2 + Game.blockSpacing;
 	var index = Math.floor((diff - Game.blockWidth) / Game.blockSpacing);
 	if (index >= 0) {
 		var g = Game.gaps[index];
-		var space = (diff + Game.playerSize) % Game.blockSpacing;
-		//console.log(Math.floor((diff - Game.blockWidth) / Game.blockSpacing), diff % Game.blockSpacing < Game.blockWidth);
 		for (var i = Bird.objects.length; i--;) {
 			var b = Bird.objects[i];
 			if (b.dead) continue;
-			if ((space < Game.playerSize + Game.blockWidth && (b.height < g || b.height + Game.playerSize > g + Game.gapWidth))
-				|| b.height + Game.playerSize > canvas.height) b.kill();
-			else if (b.NN.compute(b.height - g) > 0.9) b.speed = -6;
+			if (((diff + Game.playerSize) % Game.blockSpacing < Game.playerSize + Game.blockWidth &&
+				(b.height < g || b.height + Game.playerSize > g + Game.gapWidth)) ||
+				b.height + Game.playerSize > canvas.height) b.kill();
+			else b.think(g);
 		}
 	}
+
+	Game.score += 1;
 	if (!Game.alive) {
-		Bird.objects.sort((a, b) => b.score - a.score);
-		var oldBirds = Bird.objects;
+		var oldBirds = Bird.objects.sort((a, b) => b.score - a.score);
+		for (var parentsTotal = 0, i = Game.parents; i--;) parentsTotal += oldBirds[i].score;
 		Bird.objects = [];
-		for (var k = 3; k--;)for (var i = 10; i--;) for (var j = i; j--;) new Bird(oldBirds[i].NN.cross(oldBirds[j].NN));
-		for (var i = 15; i--;) new Bird(oldBirds[i].NN.clone());
+		for (var i = Game.parents; i--;) {
+			var b = oldBirds[i];
+			for (var j = ~~(Game.population * b.score / parentsTotal); j--;) new Bird(oldBirds[i].NN.cross(oldBirds[~~(Math.random() * Game.parents)].NN));
+			new Bird(oldBirds[i].NN.clone());
+		}
 		Game.score = 0;
 	}
-	if (MAXSPEED) setTimeout(elapse, 0);
+
+	if (Game.MAXSPEED) setTimeout(elapse, 0);
 }
-var MAXSPEED = false;
+
 var speedButton = document.getElementById("speed");
 speedButton.onclick = function () {
-	MAXSPEED = !MAXSPEED;
-	speedButton.innerHTML = MAXSPEED ? "Normal" : "Max"
+	Game.MAXSPEED = !Game.MAXSPEED;
+	speedButton.innerHTML = Game.MAXSPEED ? "Normal" : "Max"
 }
 
 setInterval(elapse, 1000 / 60);
-
-

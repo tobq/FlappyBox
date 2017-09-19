@@ -5,8 +5,13 @@
 function sigmoid(x) {
 	return 1 / (1 + Math.exp(-x));
 }
-function mutation() {
-	if (Math.random() < 0.05) return random();
+function mutation(prob) {
+	throw "unimplemented";
+}
+function mutate(x, variation) {
+	if (Math.random() < 0.02) return random();
+	if (!variation) variation = 0.0;
+	return x * (1 - variation + 2 * variation * Math.random());
 }
 function randEl(array, val) {
 	return val === undefined ? array[Math.floor(array.length * Math.random())] : array[Math.floor(array.length * Math.random())] = val;
@@ -53,12 +58,12 @@ NN.prototype.cross = function () {
 		var layer = nn.weights[i];
 		for (var j = layer.length; j--;) {
 			var weights = layer[j];
-			for (var k = weights.length; k--;) weights[k] =
-				mutation() || randEl(parents).weights[i][j][k];
+			for (var k = weights.length; k--;)
+				weights[k] = mutate(randEl(parents).weights[i][j][k]);
 		}
 	}
-	for (var i = nn.biases.length; i--;) nn.biases[i] =
-		mutation() || randEl(parents).biases[i];
+	for (var i = nn.biases.length; i--;)
+		nn.biases[i] = mutate(randEl(parents).biases[i]);
 	return nn;
 }
 NN.prototype.clone = function () {
@@ -69,10 +74,10 @@ NN.prototype.clone = function () {
 		for (var j = layer.length; j--;) {
 			var weights = layer[j];
 			var parentWeights = parentLayer[j];
-			for (var k = weights.length; k--;) weights[k] = mutation() || parentWeights[k];
+			for (var k = weights.length; k--;) weights[k] = mutate(parentWeights[k]);
 		}
 	}
-	for (var i = nn.biases.length; i--;) nn.biases[i] = mutation() || this.biases[i];
+	for (var i = nn.biases.length; i--;) nn.biases[i] = mutate(this.biases[i]);
 	return nn;
 }
 
