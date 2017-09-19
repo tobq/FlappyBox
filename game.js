@@ -25,12 +25,12 @@ Bird.objects = [];
 
 var Game = {
 	keys: {},
-	NNStructure: [1, 6, 1],
+	NNStructure: [1, 5, 1],
 	score: 0,
 	blockWidth: 60,
 	gapMargin: 80,
 	blockSpacing: 250,
-	gapWidth: 100,
+	gapWidth: 93,
 	gaps: [],
 	speed: 2,
 	startOffset: 500,
