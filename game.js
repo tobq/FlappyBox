@@ -26,19 +26,20 @@ Bird.prototype.think = function (g) {
 }
 Bird.prototype.update = function (g) {
 	if (this.dead) return;
-	this.speed += g || 0.3;
+	this.speed += 0.3;
 	this.height += this.speed;
 }
 Bird.objects = [];
 
 var Game = {
 	keys: {},
-	NNStructure: [1, 5, 1],
+	generation: 1,
+	NNStructure: [1, 2, 1],
 	score: 0,
 	blockWidth: 60,
 	gapMargin: 80,
-	blockSpacing: 250,
-	gapWidth: 93,
+	blockSpacing: 220,
+	gapWidth: 100,
 	gaps: [],
 	speed: 2,
 	startOffset: 500,
@@ -71,8 +72,9 @@ function render() {
 		c.fillRect(offset, 0, Game.blockWidth, g);
 		c.fillRect(offset, Game.gapWidth + g, Game.blockWidth, canvas.height);
 	}
-	c.strokeText("Score: " + Math.floor(((Game.speed * Game.score - Game.startOffset + canvas.width / 2 + Game.blockSpacing) - Game.blockWidth) / Game.blockSpacing), 30, 30);
-	c.strokeText("Alive: " + Game.alive, 30, 60);
+	c.strokeText("Generation: " + Game.generation, 30, 30);
+	c.strokeText("Score: " + Math.floor(((Game.speed * Game.score - Game.startOffset + canvas.width / 2 + Game.blockSpacing) - Game.blockWidth) / Game.blockSpacing), 30, 60);
+	c.strokeText("Alive: " + Game.alive, 30, 90);
 	requestFrame(render);
 }
 render();
@@ -103,6 +105,9 @@ function elapse() {
 			for (var j = ~~(Game.population * b.score / parentsTotal); j--;) new Bird(oldBirds[i].NN.cross(oldBirds[~~(Math.random() * Game.parents)].NN));
 			new Bird(oldBirds[i].NN.clone());
 		}
+		Game.gaps = [];
+		for (var i = 1000; i--;) Game.gaps[i] = Game.gapMargin + Math.random() * (canvas.height - 2 * Game.gapMargin - Game.gapWidth);
+		Game.generation++;
 		Game.score = 0;
 	}
 

@@ -10,7 +10,7 @@ function mutation(prob) {
 }
 function mutate(x, variation) {
 	if (Math.random() < 0.02) return random();
-	if (!variation) variation = 0.0;
+	if (!variation) variation = NN.variation;
 	return x * (1 - variation + 2 * variation * Math.random());
 }
 function randEl(array, val) {
@@ -34,6 +34,7 @@ function NN() {
 		this.biases[i] = random();
 	}
 }
+NN.variation = 0.0;
 NN.prototype.compute = function () {
 	if (arguments.length !== this.structure[0]) throw "\n" + arguments.length + " arguments given. " + this.structure[0] + " expected\n";
 
